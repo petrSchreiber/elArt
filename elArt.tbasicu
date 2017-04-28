@@ -1,0 +1,116 @@
+uses "TBGL"
+
+#include "offScreenRenderer8b.tbasicu"
+
+%ELART_ERROR_WindowLimitExceeded           = 1
+%ELART_ERROR_OffScreenRenderingUnsupported = 2
+
+type elArt
+  private
+  
+  static windowCounter as long
+  
+  canvasWindow         as dword
+  offScreenRenderer    as offScreenRenderer8b
+  
+  clientWidth          as dword
+  clientHeight         as dword
+  
+  function drawFullScreenQuad()  
+    tbgl_pushStateProtect %TBGL_LIGHTING
+      tbgl_pushColor 255,255,255
+        tbgl_beginPoly %GL_QUADS
+          tbgl_texCoord2D 0,0
+          tbgl_vertex 0,0
+   
+          tbgl_texCoord2D 1,0
+          tbgl_vertex 1,0
+   
+          tbgl_texCoord2D 1,1
+          tbgl_vertex 1,1
+   
+          tbgl_texCoord2D 0,1
+          tbgl_vertex 0,1
+        tbgl_endPoly
+      tbgl_popColor 
+    tbgl_popStateProtect   
+  end function
+  
+  public
+  
+  function _Destroy()
+    me.destroyCanvas()
+  end function
+  
+  '
+  
+  function createCanvas(title as string, clientWidth as dword, clientHeight as dword, pixelArtWidth as dword, pixelArtHeight as dword)
+    me.windowCounter += 1
+    
+    if me.windowCounter > 1 then
+      return %ELART_ERROR_WindowLimitExceeded
+    end if
+    me.clientWidth  = clientWidth
+    me.clientHeight = clientHeight
+    me.canvasWindow = tbgl_createWindowEx(title, me.clientWidth, me.clientHeight, 32, %TBGL_WS_WINDOWED)
+    tbgl_showWindow
+    
+    if offScreenRenderer8b_IsSupported = false then
+      me.destroyCanvas()
+      return %ELART_ERROR_OffScreenRenderingUnsupported
+    end if
+    
+    me.offScreenRenderer.buildBuffer(pixelArtWidth, pixelArtHeight, %OSR_NEAREST_NEIGHBOUR)
+    
+    tbgl_resetKeyState()
+  end function
+  
+  function destroyCanvas()
+    me.offScreenRenderer.releaseBuffer()
+    
+    if me.canvasWindow then
+      tbgl_destroyWindow
+      me.canvasWindow = 0
+    
+      me.windowCounter -= 1
+    end if  
+  end function
+  
+  function hasCanvas() as long
+    return me.canvasWindow 
+  end function
+  
+  '
+  
+  function beginDrawing()
+    ' -- Here we perform the offscreen rendering
+    me.offScreenRenderer.beginRender
+   
+    tbgl_renderMatrix2D(0, 0, me.clientWidth, me.clientHeight)
+    tbgl_clearFrame    
+  end function
+  
+  function endDrawing()
+    me.offScreenRenderer.endRender
+
+    ' -- Here we render the contents of image buffer to smaller screen
+    tbgl_renderMatrix2D(0, 0, 1, 1)
+    tbgl_clearFrame                  
+
+    tbgl_pushState %TBGL_TEXTURING
+      me.offScreenRenderer.bindTexture
+
+        me.drawFullScreenQuad
+        
+      tbgl_popState          
+   
+    tbgl_drawFrame  
+  end function
+  
+  '
+  
+  function keyDown(virtualKey as long)
+    return tbgl_getWindowKeyState(me.canvasWindow, virtualKey)
+  end function
+  
+end type

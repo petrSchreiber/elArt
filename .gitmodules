@@ -1,0 +1,3 @@
+[submodule "offScreenRenderer"]
+	path = offScreenRenderer
+	url = https://github.com/petrSchreiber/offScreenRenderer.git
