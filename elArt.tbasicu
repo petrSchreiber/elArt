@@ -86,10 +86,6 @@ type elArt
     return me.canvasWindow > 0
   end function
   
-  function canvasWindow() as dword
-    return me.canvasWindow 
-  end function  
-  
   '
   
   function beginDrawing()    
