@@ -66,7 +66,7 @@ type elArt
     me.offScreenRenderer.buildBuffer(pixelArtWidth, pixelArtHeight, %OSR_NEAREST_NEIGHBOUR)
     
     me.maxFrameTime = 1/TBGL_GetVSyncMaxFrameRate() * 1000
-    me.frameTimer.Start()
+    me.frameTimer = new ctimer
      
     tbgl_resetKeyState()
   end function
