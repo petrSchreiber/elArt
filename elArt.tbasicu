@@ -94,7 +94,7 @@ type elArt
     tbgl_renderMatrix2D(0, 0, me.clientWidth, me.clientHeight)
     tbgl_clearFrame    
     
-    me.frameTimer.Start()
+    me.frameTimer.start
   end function
   
   function endDrawing()
@@ -113,7 +113,7 @@ type elArt
    
     tbgl_drawFrame
     
-    me.frameTimer.Stop()
+    me.frameTimer.stop
     ' -- Triple buffering
     TBGL_UseVSync IIF( me.frameTimer.elapsed(%ctimer_milliseconds) > me.maxFrameTime, 0, 1 ) 
   end function
