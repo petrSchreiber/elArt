@@ -16,6 +16,9 @@ type elArt
   clientWidth          as dword
   clientHeight         as dword
   
+  frameTimer           as ctimer
+  maxFrameTime         as single
+                  
   function drawFullScreenQuad()  
     tbgl_pushStateProtect %TBGL_LIGHTING
       tbgl_pushColor 255,255,255
@@ -62,6 +65,9 @@ type elArt
     
     me.offScreenRenderer.buildBuffer(pixelArtWidth, pixelArtHeight, %OSR_NEAREST_NEIGHBOUR)
     
+    me.maxFrameTime = 1/TBGL_GetVSyncMaxFrameRate() * 1000
+    me.frameTimer.Start()
+     
     tbgl_resetKeyState()
   end function
   
@@ -86,12 +92,13 @@ type elArt
   
   '
   
-  function beginDrawing()
-    ' -- Here we perform the offscreen rendering
+  function beginDrawing()    
     me.offScreenRenderer.beginRender
    
     tbgl_renderMatrix2D(0, 0, me.clientWidth, me.clientHeight)
     tbgl_clearFrame    
+    
+    me.frameTimer.Start()
   end function
   
   function endDrawing()
@@ -108,7 +115,11 @@ type elArt
         
       tbgl_popState          
    
-    tbgl_drawFrame  
+    tbgl_drawFrame
+    
+    me.frameTimer.Stop()
+    ' -- Triple buffering
+    TBGL_UseVSync IIF( me.frameTimer.elapsed(%ctimer_milliseconds) > me.maxFrameTime, 0, 1 ) 
   end function
   
   '
