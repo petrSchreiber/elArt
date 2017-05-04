@@ -77,8 +77,12 @@ type elArt
   end function
   
   function hasCanvas() as long
-    return me.canvasWindow 
+    return me.canvasWindow > 0
   end function
+  
+  function canvasWindow() as dword
+    return me.canvasWindow 
+  end function  
   
   '
   
